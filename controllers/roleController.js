@@ -6,7 +6,7 @@ exports.getRoles = async (req, res) => {
 
     const { data, error } = await supabase
       .from('roles')
-      .select('*');
+      .select('id, role_name')
 
     if (error) throw error;
 

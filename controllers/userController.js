@@ -6,7 +6,7 @@ exports.getUsers = async (req, res) => {
 
     const { data, error } = await supabase
       .from('users')
-      .select('*');
+      .select('id, name, email')
 
     if (error) throw error;
 
