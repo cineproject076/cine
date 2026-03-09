@@ -6,6 +6,8 @@ const userRoutes = require('./routes/userroutes');
 const authRoutes = require('./routes/authRoutes');
 const roleRoutes = require('./routes/roleRoutes');
 const performerRoutes = require('./routes/performerRoutes');
+const talentRoutes = require('./routes/talentRoutes');
+const projectRoutes = require('./routes/projectRoutes');
 
 const app = express();
 
@@ -18,6 +20,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/performer', performerRoutes);
+app.use('/api/talents', talentRoutes);
+app.use('/api/projects', projectRoutes);
+
+
 
 
 // Test Route
