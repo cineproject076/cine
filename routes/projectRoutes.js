@@ -13,5 +13,7 @@ router.get('/', projectController.getProjects);
 // SHORTLISTING
 router.post('/shortlist', projectController.addToShortlist);
 router.get('/shortlist/:project_id', projectController.getShortlist);
+router.patch('/shortlist/:id/status', projectController.updateShortlistStatus);
 
 module.exports = router;
+

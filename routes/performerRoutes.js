@@ -6,8 +6,10 @@ const authMiddleware = require('../middleware/authMiddleware');
 // PROTECTED ROUTES (Require Token)
 router.post('/portfolio-details', authMiddleware, performerController.updatePerformerProfile);
 router.post('/add-image', authMiddleware, performerController.addPortfolioImage);
+router.get('/health', authMiddleware, performerController.getProfileHealth);
 
 // OPEN ROUTES (For Seekers)
 router.get('/search', performerController.searchTalent);
 
 module.exports = router;
+

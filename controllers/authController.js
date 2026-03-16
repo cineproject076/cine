@@ -164,3 +164,65 @@ exports.loginUser = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+// 1. GENERATE & SEND OTP (Mock)
+exports.sendOTP = async (req, res) => {
+  try {
+    const { mobile_number } = req.body;
+    if (!mobile_number) return res.status(400).json({ error: "Mobile number required" });
+
+    // Generate 6-digit code
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Store in DB
+    const { error } = await supabase
+      .from('otp_verifications')
+      .insert([{ mobile_number, otp_code: otp }]);
+
+    if (error) throw error;
+
+    // MOCK LOGGING: In a real app, this goes via SMS API
+    console.log(`\n-----------------------------------`);
+    console.log(`[MOCK SMS] To: ${mobile_number}`);
+    console.log(`[MOCK SMS] Your Cine OTP is: ${otp}`);
+    console.log(`-----------------------------------\n`);
+
+    res.json({ message: "OTP sent to your terminal log!" });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+// 2. VERIFY OTP
+exports.verifyOTP = async (req, res) => {
+  try {
+    const { mobile_number, otp_code } = req.body;
+
+    const { data: verification, error } = await supabase
+      .from('otp_verifications')
+      .select('*')
+      .eq('mobile_number', mobile_number)
+      .eq('otp_code', otp_code)
+      .gt('expires_at', new Date().toISOString())
+      .single();
+
+    if (error || !verification) {
+      return res.status(400).json({ error: "Invalid or expired OTP" });
+    }
+
+    // Mark user as verified
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ is_mobile_verified: true })
+      .eq('mobile_primary', mobile_number);
+
+    if (updateError) throw updateError;
+
+    // Clean up used OTP
+    await supabase.from('otp_verifications').delete().eq('id', verification.id);
+
+    res.json({ message: "Mobile number verified successfully!" });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};

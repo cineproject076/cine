@@ -94,3 +94,62 @@ exports.searchTalent = async (req, res) => {
         res.status(400).json({ error: err.message });
     }
 };
+
+// PROFILE HEALTH CHECK (Diagnostic for Level 2)
+exports.getProfileHealth = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Fetch profile data
+        const { data: profile } = await supabase
+            .from('performer_profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+
+        // Fetch image count
+        const { data: images } = await supabase
+            .from('portfolio_images')
+            .select('is_primary')
+            .eq('user_id', userId);
+
+        const mandatoryFields = {
+            'height_cm': 'Height',
+            'body_type': 'Body Type',
+            'languages': 'Languages',
+            'screen_persona': 'Screen Persona',
+            'areas_of_interest': 'Areas of Interest'
+        };
+
+        let missing = [];
+        let completedCount = 0;
+        const totalFields = Object.keys(mandatoryFields).length + 1; // +1 for primary image
+
+        // Check fields
+        for (const [key, label] of Object.entries(mandatoryFields)) {
+            if (profile && profile[key] && (Array.isArray(profile[key]) ? profile[key].length > 0 : true)) {
+                completedCount++;
+            } else {
+                missing.push(label);
+            }
+        }
+
+        // Check primary image
+        const hasPrimary = images?.some(img => img.is_primary);
+        if (hasPrimary) completedCount++;
+        else missing.push("Primary Profile Image");
+
+        const percentage = Math.round((completedCount / totalFields) * 100);
+
+        res.json({
+            is_active: percentage === 100,
+            completion_percentage: percentage,
+            missing_fields: missing,
+            advice: percentage < 100 ? "Complete missing fields to appear in global search results." : "Your profile is active and visible to seekers!"
+        });
+
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+

@@ -72,3 +72,25 @@ exports.getShortlist = async (req, res) => {
     }
 };
 
+// UPDATE STATUS (Interested -> Auditioned -> Selected)
+exports.updateShortlistStatus = async (req, res) => {
+    try {
+        const { id } = req.params; // Shortlist record ID
+        const { selection_status } = req.body;
+
+        const { data, error } = await supabase
+            .from('shortlists')
+            .update({ selection_status })
+            .eq('id', id)
+            .eq('owner_id', req.user.id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ message: `Status updated to ${selection_status}`, data });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+
